@@ -77,6 +77,7 @@ class InitSend {
 
         Thread.sleep(2500);
         LOG.warn("Application completed successfully, shutting down...");
-        System.exit(1);
+
+        event.getApplicationContext().close();
     }
 }

@@ -33,29 +33,36 @@ class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
+
     @Bean
-    Map<String, Object> producerConfigs() {
+    public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         return props;
     }
 
     @Bean
-    ProducerFactory<String, String> producerFactory() {
+    public ProducerFactory<String, String> producerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
     @Bean
-    KafkaTemplate<String, String> kafkaTemplate() {
+    public KafkaTemplate<String, String> kafkaTemplate() {
         KafkaTemplate<String, String> kafkaTemplate = new KafkaTemplate<>(producerFactory());
         kafkaTemplate.setMessageConverter(new StringJsonMessageConverter());
-        kafkaTemplate.setDefaultTopic("topic-user");
+        kafkaTemplate.setDefaultTopic("newTopic-user");
         kafkaTemplate.setProducerListener(new ProducerListener<String, String>() {
             @Override
             public void onSuccess(ProducerRecord<String, String> producerRecord, RecordMetadata recordMetadata) {
-                LOG.info("ACK from ProducerListener message: {} offset:  {}", producerRecord.value(),
+                LOG.info("ASK from ProducerListener message: {} offset:  {}", producerRecord.value(),
                         recordMetadata.offset());
+            }
+
+            @Override
+            public void onError(ProducerRecord<String, String> producerRecord, RecordMetadata recordMetadata, Exception exception) {
+                ProducerListener.super.onError(producerRecord, recordMetadata, exception);
             }
         });
         return kafkaTemplate;
@@ -78,7 +85,7 @@ class KafkaProducerConfig {
 
         Map<Pattern, ProducerFactory<Object, Object>> map = new LinkedHashMap<>();
         map.put(Pattern.compile(".*-bytes"), bytesPF);
-        map.put(Pattern.compile("reflectoring-.*"), stringPF);
+        map.put(Pattern.compile("newTopic.*"), stringPF);
         return new RoutingKafkaTemplate(map);
     }
 
@@ -86,7 +93,7 @@ class KafkaProducerConfig {
     public ProducerFactory<String, User> userProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return new DefaultKafkaProducerFactory<>(configProps);
     }

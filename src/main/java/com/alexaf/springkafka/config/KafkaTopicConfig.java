@@ -19,7 +19,13 @@ public class KafkaTopicConfig {
     private String topic3;
 
     @Value("${app.kafka.topic-4}")
-    private String topic4;
+    private String topicUser;
+
+    @Value("${app.kafka.topic-5}")
+    private String topicOthers;
+
+    @Value("${app.kafka.topic-6}")
+    private String topicBytes;
 
     @Bean
     NewTopic topic1() {
@@ -38,16 +44,16 @@ public class KafkaTopicConfig {
 
     @Bean
     NewTopic topicUser() {
-        return TopicBuilder.name(topic4).build();
+        return TopicBuilder.name(topicUser).build();
+    }
+
+    @Bean
+    NewTopic topicOthers() {
+        return TopicBuilder.name(topicOthers).build();
     }
 
     @Bean
     NewTopic topicBytes() {
-        return TopicBuilder.name("reflectoring-bytes").build();
-    }
-
-    @Bean
-    NewTopic others() {
-        return TopicBuilder.name("reflectoring-others").build();
+        return TopicBuilder.name(topicBytes).build();
     }
 }

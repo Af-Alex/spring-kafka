@@ -7,7 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@KafkaListener(id = "class-level", topics = "topic-1")
+@KafkaListener(id = "class-level", topics = "newTopic1")
 class KafkaClassListener {
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());

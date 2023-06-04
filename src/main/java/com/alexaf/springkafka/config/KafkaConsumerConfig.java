@@ -1,9 +1,9 @@
 package com.alexaf.springkafka.config;
 
 import com.alexaf.springkafka.User;
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,13 +20,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@RequiredArgsConstructor
 class KafkaConsumerConfig {
 
-    @Autowired
-    private KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
 
     Map<String, Object> consumerConfigs() {
         Map<String, Object> props = new HashMap<>();
@@ -41,21 +42,19 @@ class KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(consumerConfigs());
     }
 
+    public ConsumerFactory<String, User> userConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "topic-user-group");
+        return new DefaultKafkaConsumerFactory<>(props, new JsonDeserializer<>(), new JsonDeserializer<>(User.class));
+    }
+
     @Bean
     KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, String>> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setReplyTemplate(kafkaTemplate);
-        // Comment the RecordFilterStrategy if Filtering is not required
-        factory.setRecordFilterStrategy(record -> record.value().contains("ignored"));
         return factory;
-    }
-
-    public ConsumerFactory<String, User> userConsumerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "reflectoring-user");
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(User.class));
     }
 
     @Bean
